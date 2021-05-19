@@ -47,49 +47,43 @@ export default class App extends Component {
         });
     }
 
+    getNewToggleData(data, id, propertyName) {
+        return data.map(item => {
+            const newItem = {...item}
+            if (newItem.id === id) {
+                newItem[propertyName] = !newItem[propertyName];
+            }
+            return newItem;
+        })
+    }
+
     onToggleImportant(id) {
         this.setState(({data}) => {
             return {
-                data: data.map(item => {
-                    const newItem = {...item}
-                    if (newItem.id === id) {
-                        newItem.important = !newItem.important;
-                    }
-                    return newItem;
-                })
+                data: this.getNewToggleData(data, id, 'important')
             }
         });
     }
 
     onToggleLiked(id) {
-
         this.setState(({data}) => {
             return {
-                data: data.map(item => {
-                    const newItem = {...item}
-                    if (newItem.id === id) {
-                        newItem.like = !newItem.like;
-                    }
-                    return newItem;
-                })
+                data: this.getNewToggleData(data, id, 'like')
             }
         });
-
-        /*this.setState(({data}) => {
-            const index = data.findIndex((item) => item.id === id);
-            const oldItem = data[index];
-            const newItem = {...oldItem, like: !oldItem.like};
-            return {
-                data: [...data.slice(0, index), newItem, ...data.slice(index + 1)]
-            }
-        });*/
-
     }
 
     render() {
+        const {data} = this.state;
+        const liked = data.filter(item => item.like).length;
+        const allPosts = data.length;
+
         return (
             <div className="app">
-                <AppHeader/>
+                <AppHeader
+                    liked={liked}
+                    allPosts={allPosts}
+                />
                 <div className="search-panel d-flex">
                     <SearchPanel/>
                     <PostStatusFilter/>
