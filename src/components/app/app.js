@@ -13,20 +13,22 @@ export default class App extends Component {
 
     constructor(props) {
         super(props);
-
         this.state = {
             data: [
                 {label: 'That is good',         important: false,   like: true,     id: 1},
                 {label: 'Going to learn React', important: true,    like: false,    id: 2},
                 {label: 'I need break...',      important: false,   like: false,    id: 3},
-            ]
+            ],
+            term: '',
+            filter: 'all',
         }
-
         this.maxId = 4;
         this.deleteItem = this.deleteItem.bind(this);
         this.addItem = this.addItem.bind(this);
         this.onToggleImportant = this.onToggleImportant.bind(this);
         this.onToggleLiked = this.onToggleLiked.bind(this);
+        this.onUpdateSearch = this.onUpdateSearch.bind(this);
+        this.onFilterSelect = this.onFilterSelect.bind(this);
 
     }
 
@@ -73,57 +75,81 @@ export default class App extends Component {
                 data: [...data, newItem]
             }
         });*/
+
+    }
+
+    getNewToggleData(data, id, propertyName) {
+        return data.map(item => {
+            const newItem = {...item}
+            if (newItem.id === id) {
+                newItem[propertyName] = !newItem[propertyName];
+            }
+            return newItem;
+        })
     }
 
     onToggleImportant(id) {
         this.setState(({data}) => {
             return {
-                data: data.map(item => {
-                    const newItem = {...item}
-                    if (newItem.id === id) {
-                        newItem.important = !newItem.important;
-                    }
-                    return newItem;
-                })
+                data: this.getNewToggleData(data, id, 'important')
             }
         });
     }
 
     onToggleLiked(id) {
-
         this.setState(({data}) => {
             return {
-                data: data.map(item => {
-                    const newItem = {...item}
-                    if (newItem.id === id) {
-                        newItem.like = !newItem.like;
-                    }
-                    return newItem;
-                })
+                data: this.getNewToggleData(data, id, 'like')
             }
         });
+    }
 
-        /*this.setState(({data}) => {
-            const index = data.findIndex((item) => item.id === id);
-            const oldItem = data[index];
-            const newItem = {...oldItem, like: !oldItem.like};
-            return {
-                data: [...data.slice(0, index), newItem, ...data.slice(index + 1)]
-            }
-        });*/
+    searchPost(items, term) {
+        if (term.length === 0) {
+            return items
+        }
+        return items.filter(item => item.label.indexOf(term) > -1)
+    }
 
+    filterPosts(items, filter) {
+        if (filter === 'like') {
+            return items.filter(item => item.like)
+        }
+        return items
+    }
+
+    onUpdateSearch(term) {
+        this.setState({term})
+    }
+
+    onFilterSelect(filter) {
+        this.setState({filter})
     }
 
     render() {
+        const {data, term, filter} = this.state;
+        const liked = data.filter(item => item.like).length;
+        const allPosts = data.length;
+
+        const visiblePosts = this.filterPosts(this.searchPost(data, term), filter);
+
         return (
             <div className="app">
-                <AppHeader/>
+                <AppHeader
+                    liked={liked}
+                    allPosts={allPosts}
+                />
                 <div className="search-panel d-flex">
-                    <SearchPanel/>
-                    <PostStatusFilter/>
+                    <SearchPanel
+                        onUpdateSearch={this.onUpdateSearch}
+                    />
+                    <PostStatusFilter
+                        filter={filter}
+                        onFilterSelect={this.onFilterSelect}
+                    />
                 </div>
                 <PostList
-                    posts={this.state.data}
+                    posts={visiblePosts}
                     onDelete={this.deleteItem}
                     onToggleImportant={this.onToggleImportant}
                     onToggleLiked={this.onToggleLiked}
