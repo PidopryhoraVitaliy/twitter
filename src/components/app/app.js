@@ -5,6 +5,7 @@ import SearchPanel from '../search-panel';
 import PostStatusFilter from '../post-status-filter';
 import PostList from '../post-list';
 import PostAddForm from '../post-add-form';
+import Api from '../api';
 
 import './app.css';
 
@@ -12,6 +13,7 @@ export default class App extends Component {
 
     constructor(props) {
         super(props);
+
         this.state = {
             data: [
                 {label: 'That is good',         important: false,   like: true,     id: 1},
@@ -19,11 +21,27 @@ export default class App extends Component {
                 {label: 'I need break...',      important: false,   like: false,    id: 3},
             ]
         }
+
         this.maxId = 4;
         this.deleteItem = this.deleteItem.bind(this);
         this.addItem = this.addItem.bind(this);
         this.onToggleImportant = this.onToggleImportant.bind(this);
         this.onToggleLiked = this.onToggleLiked.bind(this);
+
+    }
+
+    componentDidMount() {
+        this.loadData();
+    }
+
+    async loadData() {
+        const api = new Api();
+        const newData = await api.getTodos();
+        this.setState(({data}) => {
+            return {
+                data: newData
+            }
+        });
     }
 
     deleteItem(id) {
@@ -34,8 +52,18 @@ export default class App extends Component {
         });
     }
 
-    addItem(body) {
+    async addItem(body) {
+
+        const api = new Api();
+        const newBody = await api.createTodo(body);
+
         this.setState(({data}) => {
+            return {
+                data: [...data, newBody]
+            }
+        });
+
+        /*this.setState(({data}) => {
             const newItem = {
                 label: body,
                 important: false,
@@ -44,7 +72,7 @@ export default class App extends Component {
             return {
                 data: [...data, newItem]
             }
-        });
+        });*/
     }
 
     onToggleImportant(id) {
